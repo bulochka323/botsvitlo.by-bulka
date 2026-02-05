@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
 from aiohttp import web
 from config import BOT_TOKEN
 from scheduler import setup_scheduler
@@ -17,7 +18,11 @@ async def main():
     logging.basicConfig(level=logging.INFO)
     init_db()
 
-    bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
+    # Виправлений запуск бота згідно з помилкою у логах Render
+    bot = Bot(
+        token=BOT_TOKEN,
+        default=DefaultBotProperties(parse_mode="HTML")
+    )
     dp = Dispatcher()
 
     # Запуск перевірки графіків
@@ -29,14 +34,19 @@ async def main():
     runner = web.AppRunner(app)
     await runner.setup()
 
-    # Render автоматично надає порт
+    # Використовуємо динамічний порт від Render
     port = int(os.environ.get("PORT", 8080))
     site = web.TCPSite(runner, '0.0.0.0', port)
 
     logging.info(f"✅ Бот запущено на порту {port}")
 
     await site.start()
-    await dp.start_polling(bot)
+
+    # Запуск бота у режимі отримання повідомлень
+    try:
+        await dp.start_polling(bot)
+    finally:
+        await bot.session.close()
 
 
 if __name__ == "__main__":
