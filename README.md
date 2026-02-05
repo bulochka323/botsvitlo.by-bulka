@@ -1,2 +1,167 @@
-# botsvitlo.by-bulka
-Telegram bot для графіків відключень
+# 🔌 Poweroutage Telegram Bot
+
+Автоматичний бот для публікації та оновлення графіків відключення електроенергії у Telegram-канал.
+
+## ✨ Основні можливості
+
+✅ **Автоматична публікація** — щодня в один час  
+✅ **Моніторинг змін** — перевірка кожні 15-30 хвилин  
+✅ **Виділення нових змін** — показує, що саме змінилось  
+✅ **Збереження історії** — SQLite база даних  
+✅ **Обробка помилок** — автоматичні повторні спроби  
+✅ **Логування** — детальні журнали роботи  
+
+---
+
+## 🚀 Встановлення та запуск
+
+### 1️⃣ Клонування репозиторію
+```bash
+git clone https://github.com/bulochka323/poweroutage-bot.git
+cd poweroutage-bot
+```
+
+### 2️⃣ Створення віртуального оточення
+```bash
+# На Linux/Mac
+python3 -m venv venv
+source venv/bin/activate
+
+# На Windows
+python -m venv venv
+venv\Scripts\activate
+```
+
+### 3️⃣ Встановлення залежностей
+```bash
+pip install -r requirements.txt
+```
+
+### 4️⃣ Налаштування бота
+
+Відредагуйте файл `config.py`:
+
+```python
+BOT_TOKEN = "ВАШ_ТОКЕН_ВІД_BOTFATHER"  # https://t.me/botfather
+CHANNEL_ID = -1001234567890            # ID або username каналу
+SCHEDULE_URL = "https://..."           # Посилання на графік
+COMPANY_NAME = "Обленерго"
+PUBLISH_TIME = "07:00"                 # Час ранкової публікації
+UPDATE_INTERVAL_MIN = 15               # Інтервал перевірок (хвилин)
+```
+
+### 5️⃣ Запуск бота
+```bash
+python bot.py
+```
+
+---
+
+## 📋 Файли проекту
+
+| Файл | Опис |
+|------|------|
+| `bot.py` | Точка запуску бота |
+| `config.py` | Налаштування (токен, канал, URL) |
+| `parser.py` | Парсинг HTML/JSON з графіком |
+| `formatter.py` | Форматування повідомлень для Telegram |
+| `scheduler.py` | Планувальник задач (ранкова публікація, періодичні перевірки) |
+| `storage.py` | SQLite база для збереження графіків |
+| `requirements.txt` | Залежності Python |
+
+---
+
+## 🔧 Як налаштувати парсер під ваш сайт
+
+У файлі `parser.py` змініть функцію `parse_schedule_html()`:
+
+### Приклад для JSON API:
+```python
+def parse_schedule_html(html: str):
+    import json
+    data = json.loads(html)
+    schedule = "\n".join([f"Черга {q}: {t}" for q, t in data["queues"].items()])
+    return {
+        "date": data["date"],
+        "schedule_text": schedule,
+        "last_updated": data.get("updated", "")
+    }
+```
+
+### Приклад для HTML-таблиці:
+```python
+def parse_schedule_html(html: str):
+    soup = BeautifulSoup(html, "html.parser")
+    table = soup.find("table")
+    rows = table.find_all("tr")[1:]
+    schedule = ""
+    for row in rows:
+        cells = [td.text.strip() for td in row.find_all("td")]
+        schedule += f"{cells[0]}: {cells[1]}\n"
+    return {
+        "date": datetime.date.today().isoformat(),
+        "schedule_text": schedule.strip(),
+        "last_updated": ""
+    }
+```
+
+---
+
+## 📧 Приклад повідомлення в канал
+
+```
+🔌 Графік відключень на 01.02.2026
+
+Черга 1: 08:00 – 12:00
+Черга 2: 12:00 – 16:00
+Черга 3: 16:00 – 20:00
+
+📌 Джерело: Обленерго
+⏰ Останнє оновлення: 06:45
+```
+
+### При оновленні:
+```
+⚠️ Оновлено графік відключень
+
+🔌 Графік відключень на 01.02.2026
+
+Черга 1: 09:00 – 13:00
+Черга 2: 13:00 – 17:00
+Черга 3: 17:00 – 21:00
+
+📝 Що саме змінилось:
+Черга 1: 09:00 – 13:00
+Черга 3: 17:00 – 21:00
+
+📌 Джерело: Обленерго
+⏰ Останнє оновлення: 10:15
+```
+
+---
+
+## 🐛 Розв'язання проблем
+
+### Помилка: "Не вдалося отримати графік"
+- Перевірте, чи вірно вказана `SCHEDULE_URL` в `config.py`
+- Переконайтесь, що сайт доступний в інтернеті
+- Перевірте логи: бот буде писати кілька спроб завантаження
+
+### Помилка: "Неvalidный токен"
+- Перейдіть у [@BotFather](https://t.me/botfather)
+- Створіть новий бот командою `/newbot`
+- Скопіюйте токен у `config.py`
+
+### Помилка: "CHANNEL_ID не вірний"
+- Переконайтесь, що це ID каналу (число, починаючи з `-100`)
+- Або вкажіть username каналу (наприклад: `@my_channel`)
+
+---
+
+## 📝 Licenseence
+
+MIT
+
+---
+
+**Проект готовий до запуску! Удачи! 🚀**
