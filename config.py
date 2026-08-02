@@ -1,5 +1,5 @@
-BOT_TOKEN = "8190914200:AAEUbwWbgiQ4riyph-wpIP_8bhZYhDlvmAo"
-CHANNEL_ID = -1001657753695    # ID каналу (наприклад "@your_channel")
+BOT_TOKEN = ""
+CHANNEL_ID = -    # ID каналу (наприклад "@your_channel")
 # Видаляємо старі змінні SCHEDULE_URL та COMPANY_NAME
 # Замість них вставляємо словник:
 REGIONS_CONFIG = {
